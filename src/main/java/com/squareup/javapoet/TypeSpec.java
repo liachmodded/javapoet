@@ -55,6 +55,7 @@ public final class TypeSpec {
   public final List<TypeVariableName> typeVariables;
   public final TypeName superclass;
   public final List<TypeName> superinterfaces;
+  public final List<TypeName> permittedSubclasses;
   public final List<ParameterSpec> recordComponents;
   public final boolean varargs;
   public final Map<String, TypeSpec> enumConstants;
@@ -78,6 +79,7 @@ public final class TypeSpec {
     this.typeVariables = Util.immutableList(builder.typeVariables);
     this.superclass = builder.superclass;
     this.superinterfaces = Util.immutableList(builder.superinterfaces);
+    this.permittedSubclasses = Util.immutableList(builder.permittedSubclasses);
     this.recordComponents = Util.immutableList(builder.recordComponents);
     this.varargs = builder.varargs;
     this.enumConstants = Util.immutableMap(builder.enumConstants);
@@ -115,6 +117,7 @@ public final class TypeSpec {
     this.typeVariables = Collections.emptyList();
     this.superclass = null;
     this.superinterfaces = Collections.emptyList();
+    this.permittedSubclasses = Collections.emptyList();
     this.recordComponents = Collections.emptyList();
     this.varargs = false;
     this.enumConstants = Collections.emptyMap();
@@ -272,6 +275,16 @@ public final class TypeSpec {
         codeWriter.emit(" implements");
         boolean firstType = true;
         for (TypeName type : implementsTypes) {
+          if (!firstType) codeWriter.emit(",");
+          codeWriter.emit(" $T", type);
+          firstType = false;
+        }
+      }
+
+      if (!permittedSubclasses.isEmpty()) {
+        codeWriter.emit(" permits");
+        boolean firstType = true;
+        for (TypeName type : permittedSubclasses) {
           if (!firstType) codeWriter.emit(",");
           codeWriter.emit(" $T", type);
           firstType = false;
@@ -474,6 +487,7 @@ public final class TypeSpec {
     public final Map<String, TypeSpec> enumConstants = new LinkedHashMap<>();
     public final List<ParameterSpec> recordComponents = new ArrayList<>();
     public boolean varargs;
+    public final List<TypeName> permittedSubclasses = new ArrayList<>();
     public final List<AnnotationSpec> annotations = new ArrayList<>();
     public final List<Modifier> modifiers = new ArrayList<>();
     public final List<TypeVariableName> typeVariables = new ArrayList<>();
@@ -606,6 +620,20 @@ public final class TypeSpec {
           avoidClashesWithNestedClasses(clazz);
         }
       }
+      return this;
+    }
+
+    public Builder addPermittedSubclasses(Iterable<? extends TypeName> subclasses) {
+      checkArgument(subclasses != null, "subclasses == null");
+      for (TypeName subclass : subclasses) {
+        addPermittedSubclass(subclass);
+      }
+      return this;
+    }
+
+    public Builder addPermittedSubclass(TypeName subclass) {
+      checkArgument(subclass != null, "subclass == null");
+      this.permittedSubclasses.add(subclass);
       return this;
     }
 
@@ -872,7 +900,15 @@ public final class TypeSpec {
         }
 
         if (kind == Kind.RECORD) {
-          checkState(!modifiers.contains(Modifier.ABSTRACT), "%s is an abstract record");
+          checkState(!modifiers.contains(Modifier.ABSTRACT), "abstract record");
+        }
+      }
+
+      if (!this.permittedSubclasses.isEmpty()) {
+        checkState(this.modifiers.contains(Modifier.SEALED), "declares permitted subclasses but is not sealed");
+
+        for (TypeName permittedSubclass : permittedSubclasses) {
+          checkArgument(permittedSubclass != null, "permittedSubclasses contains null");
         }
       }
 
