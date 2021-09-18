@@ -2,6 +2,7 @@
 .project
 .settings
 .checkstyle
+.gradle
 eclipsebin
 
 bin
