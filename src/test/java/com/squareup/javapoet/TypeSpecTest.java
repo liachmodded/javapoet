@@ -434,6 +434,21 @@ public final class TypeSpecTest {
         + "}\n");
   }
 
+  @Test
+  public void basicSealedClass() {
+    TypeSpec rec = TypeSpec.classBuilder("BasicSealed")
+        .addModifiers(Modifier.PUBLIC, Modifier.SEALED)
+        .addPermittedSubclass(ClassName.get("com.squareup.tacos", "BasicChild"))
+        .build();
+
+    assertThat(toString(rec)).isEqualTo("""
+        package com.squareup.tacos;
+
+        public sealed class BasicSealed permits BasicChild {
+        }
+        """);
+  }
+
   @Test public void enumWithSubclassing() throws Exception {
     TypeSpec roshambo = TypeSpec.enumBuilder("Roshambo")
         .addModifiers(Modifier.PUBLIC)
