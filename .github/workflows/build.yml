@@ -4,7 +4,6 @@ on: [push, pull_request]
 
 jobs:
   jvm:
-    if: ${{ github.repository_owner == 'square' }} # patch to reduce merge conflicts
     runs-on: ubuntu-latest
 
     strategy:

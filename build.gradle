@@ -3,8 +3,8 @@ plugins {
     id 'maven-publish'
 }
 
-sourceCompatibility = 17
-targetCompatibility = 17
+sourceCompatibility = 8
+targetCompatibility = 8
 
 group 'net.fabricmc'
 archivesBaseName = 'javapoet'
@@ -32,7 +32,9 @@ dependencies {
 
 tasks.withType(JavaCompile).configureEach {
     it.options.encoding = "UTF-8"
-    it.options.release = 17
+    if (JavaVersion.current().isJava9Compatible()) {
+        it.options.release = 8
+    }
 }
 
 java {
