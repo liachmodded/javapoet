@@ -904,7 +904,15 @@ public final class TypeSpec {
       }
 
       if (!this.permittedSubclasses.isEmpty()) {
-        checkState(this.modifiers.contains(Modifier.SEALED), "declares permitted subclasses but is not sealed");
+
+        Modifier sealed;
+        try {
+          sealed = Modifier.valueOf("SEALED");
+        } catch (IllegalArgumentException ex) {
+          throw new IllegalArgumentException("declares permitted subclasses but sealed modifier is not available");
+        }
+
+        checkState(this.modifiers.contains(sealed), "declares permitted subclasses but is not sealed");
 
         for (TypeName permittedSubclass : permittedSubclasses) {
           checkArgument(permittedSubclass != null, "permittedSubclasses contains null");
