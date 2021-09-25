@@ -1,0 +1,65 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
+
+sourceCompatibility = 8
+targetCompatibility = 8
+
+group 'net.fabricmc'
+archivesBaseName = 'javapoet'
+
+def ENV = System.getenv()
+version '0.1.0' + (ENV.GITHUB_ACTIONS ? "" : "+local")
+
+repositories {
+    maven {
+        name = 'Fabric'
+        url = 'https://maven.fabricmc.net/'
+    }
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation "com.google.truth:truth:1.1.3"
+    testImplementation 'com.google.testing.compile:compile-testing:0.19'
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'com.google.jimfs:jimfs:1.2'
+    testImplementation 'org.mockito:mockito-core:3.12.4'
+    testImplementation 'org.eclipse.jdt.core.compiler:ecj:4.6.1'
+    
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.encoding = "UTF-8"
+    if (JavaVersion.current().isJava9Compatible()) {
+        it.options.release = 8
+    }
+}
+
+java {
+    withSourcesJar()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+
+    repositories {
+        mavenLocal()
+
+        if (ENV.MAVEN_URL) {
+            repositories.maven {
+                name "fabric"
+                url ENV.MAVEN_URL
+                credentials {
+                    username ENV.MAVEN_USERNAME
+                    password ENV.MAVEN_PASSWORD
+                }
+            }
+        }
+    }
+}
